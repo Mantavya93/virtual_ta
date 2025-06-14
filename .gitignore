@@ -4,3 +4,11 @@ __pycache__/
 *.faiss
 *.json
 *.db
+
+# Ignore everything in data/
+data/
+
+# Except FAISS index files
+!data/faiss_index/
+!data/faiss_index/index.faiss
+!data/faiss_index/index.pkl
