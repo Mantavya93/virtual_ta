@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 import base64
 
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 # Load environment variables
 load_dotenv()
@@ -24,14 +24,6 @@ if not AIPIPE_TOKEN:
 
 # Initialize FastAPI
 app = FastAPI()
-
-# Add root route for Railway health check
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    return """
-    <h2>✅ TDS Virtual TA is running</h2>
-    <p>Visit <a href="/docs">/docs</a> to test the API.</p>
-    """
 
 # Allow all CORS origins
 app.add_middleware(
@@ -77,6 +69,13 @@ def load_vectorstore():
         default_headers={"Authorization": f"Bearer {AIPIPE_TOKEN}"}
     )
     qa_chain = load_qa_chain(llm, chain_type="stuff")
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <h2>✅ TDS Virtual TA is running</h2>
+    <p>Visit <a href="/docs">/docs</a> to test the API.</p>
+    """
 
 @app.post("/api/")
 async def ask_question(
@@ -129,3 +128,10 @@ async def ask_question(
         "links": links,
         "images": images
     }
+
+@app.post("/")
+async def ask_question_alias(request: Request):
+    form = await request.form()
+    question = form.get("question")
+    image = form.get("image")
+    return await ask_question(question=question, image=image)
