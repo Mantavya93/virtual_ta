@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -23,6 +24,14 @@ if not AIPIPE_TOKEN:
 
 # Initialize FastAPI
 app = FastAPI()
+
+# Add root route for Railway health check
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <h2>✅ TDS Virtual TA is running</h2>
+    <p>Visit <a href="/docs">/docs</a> to test the API.</p>
+    """
 
 # Allow all CORS origins
 app.add_middleware(
